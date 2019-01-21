@@ -5,7 +5,7 @@ from ecdsa import SigningKey, VerifyingKey
 # Refer to downloaded document in Block_chain_stuff ---- Recommended EC domain parameters.
 #
 import os
-import sys;
+import sys
 import numpy as np
 from hashlib import sha256
 import binascii
