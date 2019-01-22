@@ -9,6 +9,7 @@ import sys
 import numpy as np
 from hashlib import sha256
 import binascii
+import re
 
 
 from ecdsa.util import string_to_number, number_to_string
@@ -34,6 +35,7 @@ generator = generator_secp256k1
 
 
 def random_secret():        #   Method to generate private key. 
+    global byte_array
     byte_array = os.urandom(32)
         
     joinArray = "".join([str(i) for i in byte_array])
@@ -50,9 +52,10 @@ secret = random_secret()    #Generate a new private key.
 byteSecret = (str(secret).encode())
 hashSecrete = sha256(byteSecret)
 privkey = hashSecrete.hexdigest()
+#string_prvkey = privkey.to_string()
 
-
-print("The Private key is: ", privkey)
+print('The Secret is: ', secret)            #   This is just set of numbers.
+print("The Private key is: ", privkey)      #   This is hex numbers.
 
 #print("The Generator is: ", generator)
 
@@ -73,6 +76,33 @@ print("The Private key is: ", privkey)
 
 point = (np.multiply(secret, generator)) # This also works--Numpy. 
 
+px =point._Point__x
+py =point._Point__y
+
+print('The byte array is: ', byte_array)
+
+print('The PointX is: ', px)
+print('The PointX is: ', py)
+
+mergePointXnY = px+py
+
+
+#pointStr = str(mergePointXnY)
+#pointMg = point.replace(',', '')
+#pointMg =(re.sub("[ ()]", " ", pointStr))  #   This removes the parenthesis and comma.
+#int_convert = int(pointMg)
+    
+encode_int = int(hex(mergePointXnY),16)
+#bytesEncode_int = encode_int.to_bytes(10, byteorder='big')
+#bytesForm = bytes(encode_int)
+
+pointToString = (str(encode_int).encode())
+#print('The Public key2 is: ', pointToString)
+hashPoint = sha256(pointToString)
+pubkey2 = (int(hashPoint.hexdigest(),16)).to_bytes(64, byteorder='little')
+hexpubkey2 = (sha256(str(pubkey2).encode()))
+print('The Public key2 is: ', hexpubkey2)
+
 #print("Elliptive Curve point:", point)
 
 
@@ -81,22 +111,16 @@ def get_point_pubkey(point):
         key = '03' + '%064x' % point.x()
     else:
         key = '02' + '%064x' % point.x()
-    return int(key, 16)
+    #return int(key, 16)
+    return key
 
 pubS = str(get_point_pubkey(point))
 pubEnc = sha256(pubS.encode())
-pubkey = pubEnc.hexdigest()
+pubkey = (pubEnc.hexdigest())
+#string_pubkey = pubkey.to_string()
 
 #print("The public key is:", hex(get_point_pubkey(point)))
 print("The Public key is:", pubkey)
-
-#   An effective way?
-# Generate the key pair from a SECP256K1 elliptic curve.
-def keyPair():
-    sk = SigningKey.generate(curve=SECP256k1)
-    pk = sk.get_verifying_key()
-
-    return sk, pk 
 
 
 #   Prompt user for data input.
@@ -113,24 +137,26 @@ def messageData(message):
 
 
 #   Signing a message with private key.
-def sign(privkey, msgHashed):
-        sk = ecdsa.SigningKey.from_string(binascii.unhexlify(privkey), curve=ecdsa.SECP256k1, hashfunc = sha256)
-        signature = binascii.hexlify(sk.sign(binascii.unhexlify(msgHashed), hashfunc=sha256))
+def sign(string_prvkey, msgHashed):
+        thesignkey = ecdsa.SigningKey.from_string(binascii.unhexlify(privkey), curve=ecdsa.SECP256k1, hashfunc = sha256)
+        signature = thesignkey.sign(msgHashed.encode(), hashfunc = sha256) # This throws error if not encoded.
         global theSign
         theSign = signature
         return signature
 
 
 def verify(pubkey, msgHashed, signature):
-        #   pubkey:hex pubkey, not hex_compressed
-        try:
-            vk = ecdsa.VerifyingKey.from_string(binascii.unhexlify(pubkey), curve=ecdsa.SECP256k1, hashfunc=sha256)
+    #   pubkey:hex pubkey, not hex_compressed
+    #vk = ecdsa.VerifyingKey.from_string(string_pubkey, curve=ecdsa.SECP256k1, hashfunc = sha256)
     
-            sigDec = (sha256(signature).hexdigest())
-            vk.verify(binascii.unhexlify(sigDec), binascii.unhexlify(msgHashed))
-        except ecdsa.BadSignatureError:
-            return False
-            
+    #sigDec = (sha256(signature).hexdigest())
+    #vk.verify(digitalSig, msgHashed.encode(), "Sorry! Verification failed."
+   
+    vk = ecdsa.VerifyingKey.from_string((pubkey), curve=ecdsa.SECP256k1, hashfunc = sha256)
+    assert vk.verify(signature, msgHashed.encode()), 'Oh! Sorry, verification failed'
+
+    print('')
+    print("Congratulations! Verification was successful. Thank you.")
 
 print('')
 
@@ -140,14 +166,15 @@ print('')
 
 inputData()
 
-keyPair()
-
 sign(privkey, messageData(message))
 
 print("The message entered was: ", message)
 print("The message hashed is now: ", msgHashed)
+
+
+
 print("The Signature for the message is: ", theSign)
 
 sigN = sign(privkey, msgHashed)
 
-verify(pubkey, msgHashed, theSign)
+verify(pubkey2, msgHashed, theSign)
