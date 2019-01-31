@@ -1,4 +1,5 @@
-# Simple implementation of Digital Signature using user's typed text.
+# This is a command-line application.
+# Implementation of Digital Signature using user's typed input.
 
 from hashlib import sha256
 import ecdsa
@@ -8,7 +9,7 @@ from ecdsa import SigningKey, VerifyingKey
 
 
 def userInput():
-    message = input('Please enter message to be signed digitally.: ')
+    message = input('Ni hao .... Please enter message to be signed digitally.: ')
 
     hashedMsg = (sha256(message.encode())).hexdigest()
 

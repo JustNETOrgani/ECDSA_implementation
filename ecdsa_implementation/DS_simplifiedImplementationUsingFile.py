@@ -1,4 +1,5 @@
-# Simple implementation of Digital Signature using user's file as Message or Data.
+# This is a Command-Line Application
+# Implementation of Digital Signature using user's file as Message or Data.
 
 from hashlib import sha256
 import ecdsa
@@ -10,7 +11,7 @@ from ecdsa import SigningKey, VerifyingKey
 
 def UserFile():
     #   User's file or Data acceptance begins.
-    with open('SampleUserFile.txt', 'r') as Ufile:              
+    with open('C:/Users/signit/source/repos/ecdsa_implementation/ecdsa_implementation/SampleUserFile.txt', 'r') as Ufile:              
     #   'r' opens the file in read mode.
     #   Reading couldn't be done on .docx, .xlsx, .pdf files. So far, only .txt is successful.
         dataFile = Ufile.read()
@@ -20,8 +21,6 @@ def UserFile():
 
 def keyPairGenerator():
     #   Very easy way to derive private and public keys from ecdsa beigns.
-    #   Another way to generate the private and public keys. Private key gotten but Public. 
-
     private_key = SigningKey.generate(curve=ecdsa.SECP256k1)
     string_private_key = private_key.to_string()
 
